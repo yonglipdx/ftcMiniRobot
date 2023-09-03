@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.LED;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -13,13 +15,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class ProgrammingBoard8 {
         private ColorSensor colorSensor;
         private DistanceSensor distanceSensor;
-
         private DcMotor motorLeft, motorRight;
-
         private IMU imu;
+        public Servo servo;
+        public LED Led;
 
         public void init(HardwareMap hwMap){
-
             colorSensor = hwMap.get(ColorSensor.class, "ColorSensor");
             distanceSensor = hwMap.get(DistanceSensor.class, "ColorSensor");
             imu = hwMap.get(IMU.class, "imu");
@@ -33,7 +34,8 @@ public class ProgrammingBoard8 {
                     new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
                     RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
             imu.initialize(new IMU.Parameters(RevOrientation));
-
+            servo = hwMap.get(Servo.class, "Servo");
+            Led = hwMap.get(LED.class, "Led");
         }
 
         public int getAmountRed(){
