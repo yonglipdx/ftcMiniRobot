@@ -27,7 +27,7 @@ public class ArcadeDriveWithServo extends OpMode {
         wheel.init(hardwareMap);
         body.init(hardwareMap);
         claw = body.servo;
-        Led = body.Led;
+        Led = body.leftFrontLed;
     }
 
     @Override

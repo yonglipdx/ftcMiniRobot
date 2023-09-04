@@ -18,7 +18,7 @@ public class ProgrammingBoard8 {
         private DcMotor motorLeft, motorRight;
         private IMU imu;
         public Servo servo;
-        public LED Led;
+        public LED leftFrontLed, rightFrontLed;
 
         public void init(HardwareMap hwMap){
             colorSensor = hwMap.get(ColorSensor.class, "ColorSensor");
@@ -35,7 +35,8 @@ public class ProgrammingBoard8 {
                     RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
             imu.initialize(new IMU.Parameters(RevOrientation));
             servo = hwMap.get(Servo.class, "Servo");
-            Led = hwMap.get(LED.class, "Led");
+            leftFrontLed = hwMap.get(LED.class, "LeftFrontLed");
+            rightFrontLed = hwMap.get(LED.class, "RightFrontLed");
         }
 
         public int getAmountRed(){
@@ -67,5 +68,11 @@ public class ProgrammingBoard8 {
         motorRight.setPower(speed);
     }
 
+        public void clawOpen(){
+            servo.setPosition(0.8);
+        }
 
+        public void clawGrab() {
+            servo.setPosition(0.2);
+        }
 }
