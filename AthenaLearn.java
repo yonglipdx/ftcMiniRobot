@@ -28,7 +28,6 @@ import overcharged.components.hSlides;
 public class AthenaLearn extends OpMode {
 
     private boolean retractdeposit = false;
-
     float robotXMove;
     float robotYMove;
     float robotRotationMove;
@@ -40,6 +39,7 @@ public class AthenaLearn extends OpMode {
     boolean clawSwitch;
     float speedFactor;
     RobotMecanum robot;
+
     public void readAndParseGamePad() {
         // 1. robot X|Y move  (joystick L)
         robotXMove = gamepad1.left_stick_x;
@@ -69,6 +69,17 @@ public class AthenaLearn extends OpMode {
         turretRotationMove *= speedFactor;
     }
 
+    public void resetPower(){
+        robot.vSlides.slideMiddle.setPower(0);
+        robot.vSlides.slideLeft.setPower(0);
+        robot.vSlides.slideRight.setPower(0);
+        robot.driveRightFront.setPower(0);
+        robot.driveRightBack.setPower(0);
+        robot.driveLeftFront.setPower(0);
+        robot.driveLeftBack.setPower(0);
+        robot.turret.turret.setPower(0);
+   }
+
     @Override
     public void init() {
         try {
@@ -79,14 +90,7 @@ public class AthenaLearn extends OpMode {
             telemetry.addData("Status", "Initialized");
             telemetry.update();
             robot.turret.turret.setTargetPositionPIDFCoefficients(16, 0, 0, 0);
-            robot.vSlides.slideMiddle.setPower(0);
-            robot.vSlides.slideLeft.setPower(0);
-            robot.vSlides.slideRight.setPower(0);
-            robot.driveRightFront.setPower(0);
-            robot.driveRightBack.setPower(0);
-            robot.driveLeftFront.setPower(0);
-            robot.driveLeftBack.setPower(0);
-            robot.turret.turret.setPower(0);
+            resetPower();
             robot.clawOpen();
         } catch (Exception e) {
             telemetry.addData("Init Failed", e.getMessage());
@@ -96,6 +100,8 @@ public class AthenaLearn extends OpMode {
 
     @Override
     public void loop() {
+
+        resetPower();
         readAndParseGamePad();
         if (Math.abs(robotXMove) > 1e-5 || Math.abs(robotYMove) > 1e-5 || Math.abs(robotRotationMove) > 1e-5) { // robot
             double x = robotXMove;
@@ -115,12 +121,14 @@ public class AthenaLearn extends OpMode {
             robot.vSlides.slideMiddle.setPower(vSlidesMove);
             robot.vSlides.slideRight.setPower(vSlidesMove);
         } else if (Math.abs(turretRotationMove) > 1e-5) {  // turret
-            robot.turret.setPower(turretRotationMove);
+            robot.turret.turret.setPower(turretRotationMove);
         } else if (clawSwitch) {  // claw
             if (clawState == ClawState.OPEN) {
                 robot.clawGrab();
+                clawState = ClawState.GRAB;
             } else if (clawState == ClawState.GRAB) {
                 robot.clawOpen();
+                clawState = ClawState.OPEN;
             }
         }
     }
