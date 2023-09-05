@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.LED;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.mechanisms.ProgrammingBoard8;
@@ -12,31 +13,36 @@ import org.firstinspires.ftc.teamcode.mechanisms.ProgrammingBoard8;
 public class TwoMoterOneServo extends OpMode {
 
     ProgrammingBoard8 robot = new ProgrammingBoard8();
-
     enum ClawState {OPEN, GRAB;};
-    ClawState clawState = ClawState.OPEN;
-    boolean clawSwitch = false;
+    ClawState clawState;
+    boolean switchClaw;
 
     float robotLeftMove;
     float robotRightMove;
     float speedFactor;
 
+    Gamepad currGamepad1 = new Gamepad();
+    Gamepad prevGamepad1 = new Gamepad();
+
     public void readAndParseGamePad() {
 
-        robotLeftMove = -gamepad1.left_stick_y;
-        robotRightMove = -gamepad1.right_stick_y;
-
-        clawSwitch = gamepad1.right_bumper;
-
+        prevGamepad1.copy(currGamepad1);
+        currGamepad1.copy(gamepad1);
+        robotLeftMove = -currGamepad1.left_stick_y;
+        robotRightMove = -currGamepad1.right_stick_y;
+        switchClaw = !prevGamepad1.right_bumper && currGamepad1.right_bumper;
         speedFactor = gamepad1.right_trigger;
         robotLeftMove *= speedFactor;
         robotRightMove *= speedFactor;
+
     }
 
 
     @Override
     public void init() {
         robot.init(hardwareMap);
+        clawState = ClawState.OPEN;
+        boolean switchClaw = false;
     }
 
     @Override
@@ -44,17 +50,16 @@ public class TwoMoterOneServo extends OpMode {
 
        robot.leftFrontLed.enableLight(false);
        robot.rightFrontLed.enableLight(false);
-
        robot.setLeftMotorSpeed(0.0);
        robot.setRightMotorSpeed(0.0);
 
        readAndParseGamePad();
 
-       if (Math.abs(robotLeftMove) > 1e-5 || Math.abs(robotRightMove) > 1e-5 ){
+       if (Math.abs(robotLeftMove) > 0.01 || Math.abs(robotRightMove) > 0.01 ){
             robot.setLeftMotorSpeed(robotLeftMove);
             robot.setRightMotorSpeed(robotRightMove);
             robot.leftFrontLed.enableLight(true);
-        } else if (clawSwitch) {  // claw
+        } else if (switchClaw) {  // claw
             if (clawState == ClawState.OPEN) {
                 telemetry.addData("Before clawGrap ", robot.servo.getPosition());
                 robot.clawGrab();
