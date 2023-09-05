@@ -8,9 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
-
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,22 +39,27 @@ public class AthenaLearn extends OpMode {
     RobotMecanum robot;
 
     public void readAndParseGamePad() {
+
         // 1. robot X|Y move  (joystick L)
-        robotXMove = gamepad1.left_stick_x;
+        robotXMove = -gamepad1.left_stick_x;
+        robotXMove *= 1.1;
         robotYMove = gamepad1.left_stick_y;
 
         // 2. robot rotation  (left trigger)
-        robotRotationMove = gamepad1.left_trigger;
+        robotRotationMove = -gamepad1.left_trigger;
 
         // 3. vslides move (joystick Y right)
         vSlidesMove = gamepad1.right_stick_y;
 
         // 4. turret rotation (joystick X left)
-        turretRotationMove = gamepad1.left_stick_y;
+        turretRotationMove = gamepad1.right_stick_x;
 
         // 5. claw switch
         clawSwitch = false;
-        if (gamepad1.right_bumper) clawSwitch = true;
+        if (gamepad1.right_bumper) {
+            clawSwitch = true;
+            telemetry.addData("toggling claw", clawSwitch);
+        }
 
         reverseRotation = gamepad1.x;
         if (reverseRotation) robotRotationMove *= -1;
@@ -67,22 +70,27 @@ public class AthenaLearn extends OpMode {
         robotRotationMove *= speedFactor;
         vSlidesMove *= speedFactor;
         turretRotationMove *= speedFactor;
+
+        telemetry.addData("speedFactor", speedFactor);
     }
 
     public void resetPower(){
-        robot.vSlides.slideMiddle.setPower(0);
-        robot.vSlides.slideLeft.setPower(0);
-        robot.vSlides.slideRight.setPower(0);
         robot.driveRightFront.setPower(0);
         robot.driveRightBack.setPower(0);
         robot.driveLeftFront.setPower(0);
         robot.driveLeftBack.setPower(0);
-        robot.turret.turret.setPower(0);
+        robot.vSlides.slideMiddle.setPower(0);
+        robot.vSlides.slideLeft.setPower(0);
+        robot.vSlides.slideRight.motor.setPower(0);
+        robot.turret.turret.motor.setPower(0);
+        vSlidesMove = 0;
+        clawSwitch = false;
    }
 
     @Override
     public void init() {
         try {
+            telemetry.addData("Starting AthenaLearn", "");
             telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
             robot = new RobotMecanum(this, false, false);
             robot.setBulkReadManual();
@@ -92,6 +100,7 @@ public class AthenaLearn extends OpMode {
             robot.turret.turret.setTargetPositionPIDFCoefficients(16, 0, 0, 0);
             resetPower();
             robot.clawOpen();
+            clawState = ClawState.OPEN;
         } catch (Exception e) {
             telemetry.addData("Init Failed", e.getMessage());
             telemetry.update();
@@ -103,7 +112,7 @@ public class AthenaLearn extends OpMode {
 
         resetPower();
         readAndParseGamePad();
-        if (Math.abs(robotXMove) > 1e-5 || Math.abs(robotYMove) > 1e-5 || Math.abs(robotRotationMove) > 1e-5) { // robot
+        if (Math.abs(robotXMove) > 1e-2 || Math.abs(robotYMove) > 1e-2 || Math.abs(robotRotationMove) > 1e-2) { // robot
             double x = robotXMove;
             double y = robotYMove;
             double rx = robotRotationMove;
@@ -116,17 +125,26 @@ public class AthenaLearn extends OpMode {
             robot.driveLeftBack.setPower(backLeftPower);
             robot.driveRightFront.setPower(frontRightPower);
             robot.driveRightBack.setPower(backRightPower);
-        } else if (Math.abs(vSlidesMove) > 1e-5) { // vslide
-            robot.vSlides.slideLeft.setPower(vSlidesMove);
-            robot.vSlides.slideMiddle.setPower(vSlidesMove);
-            robot.vSlides.slideRight.setPower(vSlidesMove);
-        } else if (Math.abs(turretRotationMove) > 1e-5) {  // turret
+        } else if (Math.abs(vSlidesMove) > 1e-2) { // vslide
+            // robot.vSlides.slideLeft.setPower(vSlidesMove);
+            // robot.vSlides.slideMiddle.setPower(vSlidesMove);
+            // robot.vSlides.slideRight.setPower(vSlidesMove);
+            robot.vSlides.slideLeft.motor.setPower(vSlidesMove);
+            robot.vSlides.slideMiddle.motor.setPower(vSlidesMove);
+            robot.vSlides.slideRight.motor.setPower(vSlidesMove);
+            telemetry.addData("vSlides power2", vSlidesMove );
+        } else if (Math.abs(turretRotationMove) > 1e-2) {  // turret
             robot.turret.turret.setPower(turretRotationMove);
         } else if (clawSwitch) {  // claw
+            telemetry.addData("At clawSwitch", "");
+            telemetry.addData("clawState: ", clawState);
+            telemetry.addData("ClawState.OPEN: ", ClawState.OPEN);
             if (clawState == ClawState.OPEN) {
+                telemetry.addData("Try to grab", "");
                 robot.clawGrab();
                 clawState = ClawState.GRAB;
             } else if (clawState == ClawState.GRAB) {
+                telemetry.addData("Try to OPEN", "");
                 robot.clawOpen();
                 clawState = ClawState.OPEN;
             }
@@ -142,7 +160,3 @@ gamepad1:
 - right bumper = claw toggle switch
 - right trigger = speed control
 */
-
-
-
-
