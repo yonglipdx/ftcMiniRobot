@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class ProgrammingBoard8 {
         private ColorSensor colorSensor;
         private DistanceSensor distanceSensor;
-        private DcMotor motorLeft, motorRight;
+        public  DcMotor motorLeft, motorRight;
         private IMU imu;
         public Servo servo;
         public LED leftFrontLed, rightFrontLed;
